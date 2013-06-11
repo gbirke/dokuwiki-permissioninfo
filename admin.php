@@ -55,6 +55,7 @@ class admin_plugin_permissioninfo extends DokuWiki_Admin_Plugin {
         // Collect user and group names
         $this->users = call_user_func($getUserFunc);
         $this->groups = call_user_func($getGroupFunc);
+        ksort($this->groups);
 
         // Get permissions for each group and set the data in $this->aclGroupPermissions
         $this->_aclGroupPermissions();
