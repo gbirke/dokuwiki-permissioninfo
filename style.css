@@ -24,6 +24,10 @@
 	float:right;
 }
 
+.piContainer .content {
+	margin:10px;
+}
+
 .piContainer .users {
 	-moz-column-count:auto;
 	-moz-column-width:150px;
