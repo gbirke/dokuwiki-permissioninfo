@@ -106,7 +106,7 @@ class admin_plugin_permissioninfo extends DokuWiki_Admin_Plugin {
             ptln('<header>', 2);
             ptln("<h2>$gname</h2>", 4);
             ptln('</header>', 2);
-		    
+            
             ptln('<div class="content">', 2);
 
             // print acl settings for this group 
@@ -179,12 +179,12 @@ class admin_plugin_permissioninfo extends DokuWiki_Admin_Plugin {
             AUTH_DELETE
         );
         ptln("   <div class='permissions'>");
-		if(empty($acldata))
-		{
-			ptln("    <p>".$this->getLang('pi_no_permissions_found').'</p>');
-			ptln("    </div>");
-			return;
-		}
+        if(empty($acldata))
+        {
+            ptln("    <p>".$this->getLang('pi_no_permissions_found').'</p>');
+            ptln("    </div>");
+            return;
+        }
         ptln("   <table>");
         $s = "<tr><th>".$this->getLang('pi_resource')."</th>";
         foreach($displayed_permissions as $p)
@@ -268,7 +268,6 @@ class admin_plugin_permissioninfo extends DokuWiki_Admin_Plugin {
      */
     function _aclGroupPermissions()
     {
-        //global $AUTH_ACL;
         $AUTH_ACL = $this->_auth_loadACL(); //without %USER% replacement
         $gp = array();
         foreach($AUTH_ACL as $a)
@@ -355,7 +354,6 @@ class admin_plugin_permissioninfo extends DokuWiki_Admin_Plugin {
             $search_string .= '|@'.preg_quote(auth_nameencode($g), '/');
         $perm_regex = '/^([^\s]+)\s('.$search_string.')\s(\d+)/';
         // Search through permissions
-        //global $AUTH_ACL;
         $AUTH_ACL = $this->_auth_loadACL(); //without user replacement
         $up = array();
         // $for_user holds permissions that are assigned explicitly to the user
@@ -382,8 +380,7 @@ class admin_plugin_permissioninfo extends DokuWiki_Admin_Plugin {
      * Loads the ACL setup 
      * 
      * copyed from inc/auth -> auth_loadACL()
-     *
-     * don't substitute user wildcard
+     *  - removed substitute of user wildcard
      */
     function _auth_loadACL() {
         global $config_cascade;
@@ -399,15 +396,6 @@ class admin_plugin_permissioninfo extends DokuWiki_Admin_Plugin {
             if(empty($line) || ($line{0} == '#')) continue; // skip blank lines & comments
             list($id,$rest) = preg_split('/[ \t]+/',$line,2);
     
-            // substitute user wildcard first (its 1:1)
-            /*if(strstr($line, '%USER%')){
-                // if user is not logged in, this ACL line is meaningless - skip it
-                if (!isset($_SERVER['REMOTE_USER'])) continue;
-    
-                $id   = str_replace('%USER%',cleanID($_SERVER['REMOTE_USER']),$id);
-                $rest = str_replace('%USER%',auth_nameencode($_SERVER['REMOTE_USER']),$rest);
-            }
-            */
             // substitute group wildcard (its 1:m)
             if(strstr($line, '%GROUP%')){
                 // if user is not logged in, grps is empty, no output will be added (i.e. skipped)
