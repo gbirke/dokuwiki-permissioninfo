@@ -106,7 +106,7 @@ class admin_plugin_permissioninfo extends DokuWiki_Admin_Plugin {
             ptln('<header>', 2);
             ptln("<h2>$gname</h2>", 4);
             ptln('</header>', 2);
-		    
+            
             ptln('<div class="content">', 2);
 
             // print acl settings for this group 
@@ -179,12 +179,12 @@ class admin_plugin_permissioninfo extends DokuWiki_Admin_Plugin {
             AUTH_DELETE
         );
         ptln("   <div class='permissions'>");
-		if(empty($acldata))
-		{
-			ptln("    <p>".$this->getLang('pi_no_permissions_found').'</p>');
-			ptln("    </div>");
-			return;
-		}
+        if(empty($acldata))
+        {
+            ptln("    <p>".$this->getLang('pi_no_permissions_found').'</p>');
+            ptln("    </div>");
+            return;
+        }
         ptln("   <table>");
         $s = "<tr><th>".$this->getLang('pi_resource')."</th>";
         foreach($displayed_permissions as $p)
@@ -268,7 +268,7 @@ class admin_plugin_permissioninfo extends DokuWiki_Admin_Plugin {
      */
     function _aclGroupPermissions()
     {
-        global $AUTH_ACL;
+        $AUTH_ACL = $this->_auth_loadACL(); //without %USER% replacement
         $gp = array();
         foreach($AUTH_ACL as $a)
         {
@@ -351,10 +351,10 @@ class admin_plugin_permissioninfo extends DokuWiki_Admin_Plugin {
         $this->username = $userdata['name'];
         $search_string = preg_quote(auth_nameencode($username), '/');
         foreach($userdata['grps'] as $g)
-            $search_string .= '|@'.preg_quote($g, '/');
+            $search_string .= '|@'.preg_quote(auth_nameencode($g), '/');
         $perm_regex = '/^([^\s]+)\s('.$search_string.')\s(\d+)/';
         // Search through permissions
-        global $AUTH_ACL;
+        $AUTH_ACL = $this->_auth_loadACL(); //without user replacement
         $up = array();
         // $for_user holds permissions that are assigned explicitly to the user
         $for_user = array(); 
@@ -365,15 +365,51 @@ class admin_plugin_permissioninfo extends DokuWiki_Admin_Plugin {
                 continue;
             if(preg_match($perm_regex, $a, $matches))
             {
-                $up[$matches[1]] = (empty($up[$matches[1]])?0:$up[$matches[1]]) | $matches[3];
-                if(substr($matches[2], 0, 1) != "@")
-                    $for_user[$matches[1]] = $matches[3];
+                $ns = str_replace('%USER%',auth_nameencode($username),$matches[1]); //replace %USER% with username
+                $up[$ns] = (empty($up[$matches[1]])?0:$up[$matches[1]]) | $matches[3];
+                if(substr($matches[2], 0, 1) != "@")  
+                    $for_user[$ns] = $matches[3];
             }
         }
         ksort($up);
         ksort($for_user);
         $this->userPermissions = $up;
         $this->explicitUserPermissions = $for_user;
+    }
+     /**
+     * Loads the ACL setup 
+     * 
+     * copyed from inc/auth -> auth_loadACL()
+     *  - removed substitute of user wildcard
+     */
+    function _auth_loadACL() {
+        global $config_cascade;
+        global $USERINFO;
+    
+        if(!is_readable($config_cascade['acl']['default'])) return array();
+    
+        $acl = file($config_cascade['acl']['default']);
+
+        $out = array();
+        foreach($acl as $line) {
+            $line = trim($line);
+            if(empty($line) || ($line{0} == '#')) continue; // skip blank lines & comments
+            list($id,$rest) = preg_split('/[ \t]+/',$line,2);
+    
+            // substitute group wildcard (its 1:m)
+            if(strstr($line, '%GROUP%')){
+                // if user is not logged in, grps is empty, no output will be added (i.e. skipped)
+                foreach((array) $USERINFO['grps'] as $grp){
+                    $nid   = str_replace('%GROUP%',cleanID($grp),$id);
+                    $nrest = str_replace('%GROUP%','@'.auth_nameencode($grp),$rest);
+                    $out[] = "$nid\t$nrest";
+                }
+            } else {
+                $out[] = "$id\t$rest";
+            }
+        }
+    
+        return $out;
     }
 }
 
