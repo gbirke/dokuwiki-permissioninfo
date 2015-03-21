@@ -104,7 +104,7 @@ class admin_plugin_permissioninfo extends DokuWiki_Admin_Plugin {
             ptln('<section class="piContainer">');
             // print group header
             ptln('<header>', 2);
-            ptln("<h2>$gname</h2>", 4);
+            ptln("<h2>".hsc($gname)."</h2>", 4);
             ptln('</header>', 2);
             
             ptln('<div class="content">', 2);
@@ -126,8 +126,8 @@ class admin_plugin_permissioninfo extends DokuWiki_Admin_Plugin {
                         'user' => $u
                     ));
                     $u_enc = auth_nameencode($u);
-                    $lnk = '<a href="'.$url.'"  title="'.$u.'" '.(!empty($this->aclUserPermissions[$u_enc])?'class="special"':"").'>';
-                    ptln($lnk.$this->users[$u]['name'].'</a>', 6);
+                    $lnk = '<a href="'.$url.'"  title="'.hsc($u).'" '.(!empty($this->aclUserPermissions[$u_enc])?'class="special"':"").'>';
+                    ptln($lnk. hsc($this->users[$u]['name']) .'</a>', 6);
                 }
                 ptln('   </div>');    
             }
@@ -146,7 +146,7 @@ class admin_plugin_permissioninfo extends DokuWiki_Admin_Plugin {
      */
     function _showUserPermissions()
     {
-        $head = sprintf($this->getLang('pi_permissionfor'), $this->username);
+        $head = sprintf($this->getLang('pi_permissionfor'), hsc($this->username));
         $id = cleanID($head);
         ptln('<h1><a name="'.$id.'" id="'.$id.'">'.$head."</a></h1>");
         echo $this->locale_xhtml('help_userpermissions');
